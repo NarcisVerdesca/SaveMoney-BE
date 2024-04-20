@@ -5,13 +5,14 @@ import com.myprojects.savemoney.entity.User;
 import com.myprojects.savemoney.exception.UserDataException;
 import com.myprojects.savemoney.jwt.LoginDto;
 
+import java.util.Collection;
+import java.util.List;
+
 public interface IAuthService {
 
-    String registerStudent(UserDto userDto) throws UserDataException;
+    String registerUser(UserDto userDto) throws UserDataException;
 
     String login(LoginDto loginDto) ;
-
-    String registerTutor(UserDto userDto) throws UserDataException;
 
     String registerAdmin(UserDto userDto) throws UserDataException;
 
@@ -19,4 +20,5 @@ public interface IAuthService {
 
     String updateUser(UserDto userDto) throws UserDataException;
 
+    List<User> getAllUsers();
 }

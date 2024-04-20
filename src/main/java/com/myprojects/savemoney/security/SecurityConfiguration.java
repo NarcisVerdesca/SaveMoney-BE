@@ -58,7 +58,7 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(auth  ->
 
                 auth
-
+                        .requestMatchers("/save-money/v1/users-list").permitAll()
                         .anyRequest().authenticated()
 
         ).httpBasic(Customizer.withDefaults());

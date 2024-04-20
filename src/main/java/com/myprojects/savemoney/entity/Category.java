@@ -13,25 +13,18 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "roles")
-public class Role {
+@Table(name = "categories")
+public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String name;
+    @Column(name = "name_category", nullable = false)
+    private String nameCategory;
 
-    @ManyToMany(mappedBy="roles")
-    private List<User> users;
-
-    @PreRemove
-    public void removeUsersAssociations() {
-        for (User user: this.users) {
-            user.getRoles().remove(this);
-        }
-    }
+    @OneToMany(mappedBy = "category")
+    private List<Transaction> transactions;
 
 }

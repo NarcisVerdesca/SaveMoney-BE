@@ -22,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -51,8 +53,16 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public String registerStudent(UserDto userDto) throws UserDataException {
+    public String registerUser(UserDto userDto) throws UserDataException {
+        return registerUserOrAdmin(userDto, "ROLE_USER");
+    }
 
+    @Override
+    public String registerAdmin(UserDto userDto) throws UserDataException {
+        return registerUserOrAdmin(userDto, "ROLE_ADMIN");
+    }
+
+    private String registerUserOrAdmin(UserDto userDto, String roleType) throws UserDataException {
         String emailDto = userDto.getEmail().toLowerCase().replace(" ", "");
         if (userRepository.existsByEmail(emailDto) || emailDto.isEmpty() || !EmailValidator.isValidEmail(emailDto)) {
             throw new UserDataException(UserDataException.emailInvalidOrExist());
@@ -60,7 +70,6 @@ public class AuthService implements IAuthService {
         if (!PasswordValidator.isValidPassword(userDto.getPassword())) {
             throw new UserDataException(UserDataException.passwordDoesNotRespectRegexException());
         }
-
         User userToSave = userAndRoleMapper.dtoToUser(userDto);
         userToSave.setFirstName(userDto.getFirstName());
         userToSave.setLastName(userDto.getLastName());
@@ -69,75 +78,19 @@ public class AuthService implements IAuthService {
         userToSave.setBirthDate(userDto.getBirthDate());
         userToSave.setBackgroundImage(userDto.getBackgroundImage());
 
-        Role role = roleToAssign("ROLE_STUDENT");
+        Role role = roleToAssign(roleType);
         userToSave.setRoles(List.of(role));
 
-
         User userSaved = userRepository.save(userToSave);
-        if (userRepository.findByEmail(userSaved.getEmail()) == null) {
+        if (!userRepository.existsByEmail(userSaved.getEmail())) {
             throw new UserDataException(UserDataException.somethingGoesWrong());
         }
-        LOG.info("Student registered: " + userSaved.getEmail());
-        return "Student registered successfully";
-    }
-
-    @Override
-    public String registerTutor(UserDto userDto) throws UserDataException {
-        String emailDto = userDto.getEmail().toLowerCase().replace(" ", "");
-        if (
-                userRepository
-                        .existsByEmail(emailDto) ||
-                        emailDto.isEmpty() ||
-                        !EmailValidator.isValidEmail(emailDto)
-        ) {
-            throw new UserDataException(UserDataException.emailInvalidOrExist());
+        if ("ROLE_USER".equals(roleType)) {
+            LOG.info("User registered: " + userSaved.getEmail());
+            return "User registered successfully";
+        } else {
+            return "Admin registered successfully";
         }
-        if (!PasswordValidator.isValidPassword(userDto.getPassword())) {
-            throw new UserDataException(UserDataException.passwordDoesNotRespectRegexException());
-        }
-
-        User userToSave = userAndRoleMapper.dtoToUser(userDto);
-        userToSave.setFirstName(userDto.getFirstName());
-        userToSave.setLastName(userDto.getLastName());
-        userToSave.setEmail(userDto.getEmail().toLowerCase().replace(" ", ""));
-        userToSave.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        userToSave.setBirthDate(userDto.getBirthDate());
-        userToSave.setBackgroundImage(userDto.getBackgroundImage());
-
-        Role role = roleToAssign("ROLE_TUTOR");
-        userToSave.setRoles(List.of(role));
-        User userSaved = userRepository.save(userToSave);
-        if (!userRepository.existsByEmail(userSaved.getEmail())) {
-            throw new UserDataException("Something goes wrong!");
-        }
-        LOG.info("Tutor registered: " + userSaved.getEmail());
-        return "Tutor registered successfully";
-    }
-
-    @Override
-    public String registerAdmin(UserDto userDto) throws UserDataException {
-        String emailDto = userDto.getEmail().toLowerCase().replace(" ", "");
-        if (userRepository.existsByEmail(emailDto) || emailDto.isEmpty() || !EmailValidator.isValidEmail(emailDto)) {
-            throw new UserDataException(UserDataException.emailInvalidOrExist());
-        }
-        if (!PasswordValidator.isValidPassword(userDto.getPassword())) {
-            throw new UserDataException(UserDataException.passwordDoesNotRespectRegexException());
-        }
-        User userToSave = userAndRoleMapper.dtoToUser(userDto);
-        userToSave.setFirstName(userDto.getFirstName());
-        userToSave.setLastName(userDto.getLastName());
-        userToSave.setEmail(userDto.getEmail().toLowerCase().replace(" ", ""));
-        userToSave.setPassword(passwordEncoder.encode(userDto.getPassword()));
-
-        Role role = roleToAssign("ROLE_ADMIN");
-
-        userToSave.setRoles(List.of(role));
-
-        User userSaved = userRepository.save(userToSave);
-        if (!userRepository.existsByEmail(userSaved.getEmail())) {
-            throw new UserDataException("Something goes wrong!");
-        }
-        return "Admin registered successfully";
     }
 
     @Override
@@ -173,6 +126,12 @@ public class AuthService implements IAuthService {
         return "User updated successfully";
     }
 
+    @Override
+    public List<User> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return userRepository.findAll();
+    }
+
     public String login(LoginDto loginDto) {
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -198,6 +157,5 @@ public class AuthService implements IAuthService {
         }
         return role;
     }
-
 
 }

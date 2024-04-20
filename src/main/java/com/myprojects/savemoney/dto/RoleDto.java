@@ -14,13 +14,12 @@ import java.util.List;
 @AllArgsConstructor
 public class RoleDto {
 
-    private long id;
+    private Long id;
 
     private String name;
 
     @JsonIgnoreProperties("roles")
     private List<UserDto> users;
 
-    private boolean deleted;
 
 }

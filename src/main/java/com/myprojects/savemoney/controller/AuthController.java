@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin("*")
 @AllArgsConstructor
 @RestController
@@ -27,25 +29,25 @@ public class AuthController {
 
     private UserAndRoleMapper userAndRoleMapper;
 
-    @PostMapping("${register.user.uri}") //register user
-    public ResponseEntity<String> registerStudent(
+    @PostMapping("${auth.register.user.uri}")
+    public ResponseEntity<String> registerUser(
             @RequestBody UserDto userDto
     ) throws UserDataException {
 
         try{
-            String response = iAuthService.registerStudent(userDto);
+            String response = iAuthService.registerUser(userDto);
 
-            LOG.info("Student successfully registered: {}", userDto.getEmail());
+            LOG.info("User successfully registered: {}", userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }catch(UserDataException userDataException){
 
-            LOG.error("Error while registering Student: {}", userDataException.getMessage());
+            LOG.error("Error while registering User: {}", userDataException.getMessage());
             return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(userDataException.getMessage());
         }
 
     }
 
-    @PostMapping("${register.admin.uri}") //register tutor
+    @PostMapping("${auth.register.admin.uri}") //register tutor
     public ResponseEntity<String> registerAdmin(
             @RequestBody UserDto userDto
     ) throws UserDataException {
@@ -61,7 +63,7 @@ public class AuthController {
 
     }
 
-    @PostMapping("${login.uri}")
+    @PostMapping("${auth.login.uri}")
     public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginDto loginDto) {
         try {
             String token = iAuthService.login(loginDto);
@@ -78,7 +80,7 @@ public class AuthController {
         }
     }
 
-    @GetMapping("${detail.userdto}")
+    @GetMapping("${auth.detail.userdto}")
     public ResponseEntity<ApiResponse<UserDto>> getUserByEmail() {
         try{
             UserDto userDTO = userAndRoleMapper.userToUserDto(iAuthService.getUserByEmail());
@@ -94,7 +96,19 @@ public class AuthController {
         }
     }
 
-    @PutMapping("${update.user.uri}")
+    @GetMapping("${auth.list.user}")
+    public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers() {
+            List<UserDto> usersDtos = iAuthService.getAllUsers()
+                    .stream()
+                   .map(u -> userAndRoleMapper.userToUserDto(u))
+                   .toList();
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    ApiResponse.<List<UserDto>>builder()
+                            .data(usersDtos)
+                            .build());
+    }
+
+    @PutMapping("${auth.update.user.uri}")
     public ResponseEntity<String> updateUser(
             @RequestBody UserDto userDto
     ) throws UserDataException {

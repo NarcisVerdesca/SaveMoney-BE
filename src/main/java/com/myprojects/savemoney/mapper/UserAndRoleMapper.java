@@ -26,7 +26,6 @@ public class UserAndRoleMapper {
 
     public UserDto userToUserDto(User user) {
         UserDto userDTO = modelMapper.map(user, UserDto.class);
-        userDTO.setRoles(user.getRoles().stream().map(this::roleToRoleDto).toList());
         return userDTO;
     }
 

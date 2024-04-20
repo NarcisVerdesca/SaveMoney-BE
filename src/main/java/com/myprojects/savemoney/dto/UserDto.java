@@ -1,6 +1,8 @@
 package com.myprojects.savemoney.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.myprojects.savemoney.entity.Transaction;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class UserDto {
 
-    private long id;
+    private Long id;
 
     private String firstName;
 
@@ -26,11 +28,6 @@ public class UserDto {
     private String password;
 
     private LocalDate birthDate;
-
-    @JsonIgnoreProperties("users")
-    private List<RoleDto> roles;
-
-    private boolean deleted;
 
     private String backgroundImage;
 

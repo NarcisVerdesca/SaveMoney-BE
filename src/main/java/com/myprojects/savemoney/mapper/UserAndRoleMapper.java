@@ -9,10 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class UserAndRoleMapper {
 
-    private static final ModelMapper modelMapper = new ModelMapper();
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -35,5 +39,6 @@ public class UserAndRoleMapper {
     public Role dtoToRole(RoleDto roleDTO) {
         return modelMapper.map(roleDTO, Role.class);
     }
+
 
 }

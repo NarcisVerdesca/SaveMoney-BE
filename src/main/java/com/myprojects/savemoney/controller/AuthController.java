@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.crypto.SecretKey;
 import java.util.List;
 
 @CrossOrigin("*")
@@ -47,13 +48,14 @@ public class AuthController {
 
     }
 
-    @PostMapping("${auth.register.admin.uri}") //register tutor
+    @PostMapping("${auth.register.admin.uri}")
     public ResponseEntity<String> registerAdmin(
-            @RequestBody UserDto userDto
+            @RequestBody UserDto userDto,
+            @RequestParam String adminKey
     ) throws UserDataException {
 
         try{
-            String response = iAuthService.registerAdmin(userDto);
+            String response = iAuthService.registerAdmin(userDto,adminKey);
             LOG.info("Admin successfully registered: {}", userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }catch(UserDataException userDataException){
@@ -80,8 +82,8 @@ public class AuthController {
         }
     }
 
-    @GetMapping("${auth.detail.userdto}")
-    public ResponseEntity<ApiResponse<UserDto>> getUserByEmail() {
+    @GetMapping("${auth.detail.user}")
+    public ResponseEntity<ApiResponse<UserDto>> getUserDetails() {
         try{
             UserDto userDTO = userAndRoleMapper.userToUserDto(iAuthService.getUserByEmail());
             return ResponseEntity.status(HttpStatus.OK).body(

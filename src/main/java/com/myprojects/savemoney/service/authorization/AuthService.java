@@ -12,8 +12,11 @@ import com.myprojects.savemoney.repository.RoleRepository;
 import com.myprojects.savemoney.repository.UserRepository;
 import com.myprojects.savemoney.utility.EmailValidator;
 import com.myprojects.savemoney.utility.PasswordValidator;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,7 +26,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
+import javax.crypto.SecretKey;
+import java.security.Key;
 import java.util.List;
 
 @Service
@@ -32,16 +36,14 @@ public class AuthService implements IAuthService {
     private static final Logger LOG = LoggerFactory.getLogger(AuthService.class);
 
     private UserRepository userRepository;
-
     private RoleRepository roleRepository;
-
     private PasswordEncoder passwordEncoder;
-
     private AuthenticationManager authenticationManager;
-
     private JwtTokenProvider jwtTokenProvider;
-
     private UserAndRoleMapper userAndRoleMapper;
+
+    @Value("${secret.variable}")
+    private String SECRET_VARIABLE;
 
     public AuthService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserAndRoleMapper userAndRoleMapper) {
         this.userRepository = userRepository;
@@ -52,17 +54,14 @@ public class AuthService implements IAuthService {
         this.userAndRoleMapper = userAndRoleMapper;
     }
 
+
+
     @Override
     public String registerUser(UserDto userDto) throws UserDataException {
-        return registerUserOrAdmin(userDto, "ROLE_USER");
+        return registerUserMethod(userDto);
     }
 
-    @Override
-    public String registerAdmin(UserDto userDto) throws UserDataException {
-        return registerUserOrAdmin(userDto, "ROLE_ADMIN");
-    }
-
-    private String registerUserOrAdmin(UserDto userDto, String roleType) throws UserDataException {
+    private String registerUserMethod(UserDto userDto) throws UserDataException {
         String emailDto = userDto.getEmail().toLowerCase().replace(" ", "");
         if (userRepository.existsByEmail(emailDto) || emailDto.isEmpty() || !EmailValidator.isValidEmail(emailDto)) {
             throw new UserDataException(UserDataException.emailInvalidOrExist());
@@ -77,21 +76,20 @@ public class AuthService implements IAuthService {
         userToSave.setPassword(passwordEncoder.encode(userDto.getPassword()));
         userToSave.setBirthDate(userDto.getBirthDate());
         userToSave.setBackgroundImage(userDto.getBackgroundImage());
+        userToSave.setPiggyBank(0);
+        userToSave.setTotalMoneySpent(0);
 
-        Role role = roleToAssign(roleType);
+        Role role = roleToAssign("ROLE_USER");
         userToSave.setRoles(List.of(role));
 
         User userSaved = userRepository.save(userToSave);
         if (!userRepository.existsByEmail(userSaved.getEmail())) {
             throw new UserDataException(UserDataException.somethingGoesWrong());
         }
-        if ("ROLE_USER".equals(roleType)) {
-            LOG.info("User registered: " + userSaved.getEmail());
-            return "User registered successfully";
-        } else {
-            return "Admin registered successfully";
-        }
+        LOG.info("User registered: " + userSaved.getEmail());
+        return "User registered successfully";
     }
+
 
     @Override
     public User getUserByEmail() {
@@ -128,7 +126,6 @@ public class AuthService implements IAuthService {
 
     @Override
     public List<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
         return userRepository.findAll();
     }
 
@@ -147,6 +144,43 @@ public class AuthService implements IAuthService {
             throw new AccessDeniedException("Accesso vietato", e);
         }
     }
+
+
+    public String registerAdmin(UserDto adminDto, String secretKey) throws UserDataException {
+        if (!isValidSecretKey(secretKey)) {
+            throw new UserDataException("Invalid secret key");
+        }
+
+        String emailDto = adminDto.getEmail().toLowerCase().replace(" ", "");
+        if (userRepository.existsByEmail(emailDto) || emailDto.isEmpty() || !EmailValidator.isValidEmail(emailDto)) {
+            throw new UserDataException(UserDataException.emailInvalidOrExist());
+        }
+        if (!PasswordValidator.isValidPassword(adminDto.getPassword())) {
+            throw new UserDataException(UserDataException.passwordDoesNotRespectRegexException());
+        }
+        User adminToSave = userAndRoleMapper.dtoToUser(adminDto);
+        adminToSave.setFirstName(adminDto.getFirstName());
+        adminToSave.setLastName(adminDto.getLastName());
+        adminToSave.setEmail(emailDto);
+        adminToSave.setPassword(passwordEncoder.encode(adminDto.getPassword()));
+        adminToSave.setBirthDate(adminDto.getBirthDate());
+        adminToSave.setBackgroundImage(adminDto.getBackgroundImage());
+
+
+        Role role = roleToAssign("ROLE_ADMIN");
+        adminToSave.setRoles(List.of(role));
+
+        User adminSaved = userRepository.save(adminToSave);
+
+        LOG.info("Admin registered: " + adminSaved.getEmail());
+        return "Admin registered successfully";
+    }
+
+
+    private boolean isValidSecretKey(String secretKey) {
+        return secretKey.equals(SECRET_VARIABLE);
+    }
+
 
     public Role roleToAssign(String nameRole) {
         Role role = roleRepository.findByName(nameRole);

@@ -26,7 +26,7 @@ public class Transaction {
     private String title;
 
     @Column(name = "amount", nullable = false)
-    private String amount;
+    private double amount;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Column(name = "date_transaction")

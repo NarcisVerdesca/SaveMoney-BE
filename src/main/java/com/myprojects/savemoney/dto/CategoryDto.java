@@ -9,14 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleDto {
+public class CategoryDto {
 
-    //private Long id;
-
-    private String name;
-
-//    @JsonIgnoreProperties("roles")
-//    private List<UserDto> users;
-
+    private String nameCategory;
 
 }

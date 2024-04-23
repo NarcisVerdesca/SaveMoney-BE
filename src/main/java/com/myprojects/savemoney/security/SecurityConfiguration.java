@@ -49,6 +49,22 @@ public class SecurityConfiguration {
         };
     }
 
+    @Value("${application.context}")
+    private String applicationContext;
+
+    @Value("${auth.list.user}")
+    private String authListUser;
+    @Value("${auth.register.user.uri}")
+    private String authRegisterUserUri;
+    @Value("${auth.register.admin.uri}")
+    private String authRegisterAdminUri;
+    @Value("${auth.login.uri}")
+    private String authLoginUri;
+    @Value("${auth.detail.user}")
+    private String authDetailUser;
+    @Value("${auth.update.user.uri}")
+    private String authUpdateUserUri;
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -58,7 +74,13 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(auth  ->
 
                 auth
-                        .requestMatchers("/save-money/v1/users-list").permitAll()
+                        .requestMatchers(applicationContext +  authListUser).hasAnyRole("ADMIN")
+                        .requestMatchers(applicationContext +  authRegisterUserUri).permitAll()
+                        .requestMatchers(applicationContext +  authLoginUri).permitAll()
+
+
+
+
                         .anyRequest().authenticated()
 
         ).httpBasic(Customizer.withDefaults());

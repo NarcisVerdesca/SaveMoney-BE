@@ -5,6 +5,7 @@ import com.myprojects.savemoney.entity.User;
 import com.myprojects.savemoney.exception.UserDataException;
 import com.myprojects.savemoney.jwt.LoginDto;
 
+import javax.crypto.SecretKey;
 import java.util.Collection;
 import java.util.List;
 
@@ -14,7 +15,7 @@ public interface IAuthService {
 
     String login(LoginDto loginDto) ;
 
-    String registerAdmin(UserDto userDto) throws UserDataException;
+    String registerAdmin(UserDto userDto, String keyForAdmin) throws UserDataException;
 
     User getUserByEmail();
 

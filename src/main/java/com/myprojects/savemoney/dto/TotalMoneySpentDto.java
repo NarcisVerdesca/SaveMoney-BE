@@ -1,5 +1,6 @@
 package com.myprojects.savemoney.dto;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,14 +10,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleDto {
+public class TotalMoneySpentDto {
 
-    //private Long id;
+    private String emailUser;
 
-    private String name;
-
-//    @JsonIgnoreProperties("roles")
-//    private List<UserDto> users;
-
-
+    private double moneySpent;
 }

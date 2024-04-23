@@ -9,14 +9,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleDto {
+public class PiggyBankDto {
 
-    //private Long id;
+    private String emailUser;
 
-    private String name;
-
-//    @JsonIgnoreProperties("roles")
-//    private List<UserDto> users;
-
+    private double moneySaved;
 
 }

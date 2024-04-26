@@ -35,8 +35,6 @@ public class UserDto {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
 
-    private String backgroundImage;
-
     private double piggyBank;
 
     private double totalMoneySpent;

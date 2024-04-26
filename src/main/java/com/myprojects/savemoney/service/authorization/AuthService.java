@@ -75,7 +75,6 @@ public class AuthService implements IAuthService {
         userToSave.setEmail(emailDto);
         userToSave.setPassword(passwordEncoder.encode(userDto.getPassword()));
         userToSave.setBirthDate(userDto.getBirthDate());
-        userToSave.setBackgroundImage(userDto.getBackgroundImage());
         userToSave.setPiggyBank(0);
         userToSave.setTotalMoneySpent(0);
 
@@ -130,19 +129,12 @@ public class AuthService implements IAuthService {
     }
 
     public String login(LoginDto loginDto) {
-        try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                     loginDto.getEmail(),
                     loginDto.getPassword()
             ));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             return jwtTokenProvider.generateToken(authentication);
-        } catch (org.springframework.security.core.AuthenticationException e) {
-            if (e instanceof org.springframework.security.authentication.BadCredentialsException) {
-                throw new BadCredentialsException("Credenziali non valide", e);
-            }
-            throw new AccessDeniedException("Accesso vietato", e);
-        }
     }
 
 
@@ -164,7 +156,6 @@ public class AuthService implements IAuthService {
         adminToSave.setEmail(emailDto);
         adminToSave.setPassword(passwordEncoder.encode(adminDto.getPassword()));
         adminToSave.setBirthDate(adminDto.getBirthDate());
-        adminToSave.setBackgroundImage(adminDto.getBackgroundImage());
 
 
         Role role = roleToAssign("ROLE_ADMIN");

@@ -9,13 +9,12 @@ import com.myprojects.savemoney.mapper.UserAndRoleMapper;
 import com.myprojects.savemoney.service.authorization.IAuthService;
 import com.myprojects.savemoney.utility.ApiResponse;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.crypto.SecretKey;
 import java.util.List;
 
 @CrossOrigin("*")
@@ -24,7 +23,7 @@ import java.util.List;
 @RequestMapping("${application.context}")
 public class AuthController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AuthController.class);
+    private static final Logger LOG = LogManager.getLogger(AuthController.class);
 
     private IAuthService iAuthService;
 
@@ -66,19 +65,24 @@ public class AuthController {
     }
 
     @PostMapping("${auth.login.uri}")
-    public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<ApiResponse<JwtAuthResponse>> login(@RequestBody LoginDto loginDto) {
         try {
+            LOG.info("Received {} request for log in", RequestMethod.POST);
             String token = iAuthService.login(loginDto);
             JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
             jwtAuthResponse.setAccessToken(token);
             LOG.info("User logged in successfully: {}", loginDto.getEmail());
-            return ResponseEntity.status(HttpStatus.OK).body(jwtAuthResponse);
-        } catch (org.springframework.security.authentication.BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new JwtAuthResponse("Bad credentials!"));
-        } catch (org.springframework.security.access.AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new JwtAuthResponse("Access denied!"));
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    ApiResponse.<JwtAuthResponse>builder()
+                            .data(jwtAuthResponse)
+                            .success(true)
+                            .message("User logged successfully!")
+                            .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    ApiResponse.<JwtAuthResponse>builder()
+                            .message(e.getMessage())
+                            .build());
         }
     }
 

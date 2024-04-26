@@ -53,8 +53,6 @@ public class User {
     )
     private List<Role> roles;
 
-    @Column(name = "background_image",length = 20971520)
-    private String backgroundImage;
 
     @OneToMany(mappedBy = "user")/* user is the name of attribute in transaction (the other part of relationship) */
     private List<Transaction> transactions;
